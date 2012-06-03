@@ -16,10 +16,22 @@ Windows.
 You must have the lsb_release command available on the server.  All commands 
 rely on it.
 
+Install
+To install the plugin for a single user run the command below in ~/.drush.
+Alternatively if you want to make it available for all users then run it from
+/usr/share/drush/commands.
+
+git clone git@github.com:skwashd/server_management.git
+
+You may have to run "drush cc drush" for it to pickup the new plugin.
+
 Caveats
 The plugin assumes that standard distro packages are being used, or at least
 the normal paths and commands for the distro are being used. Stock source
 compiled binaries may not be compatible with this plugin.
+
+I have only tested this with drush 5. It might work with drush 4, but I won't
+guarantee that it will continue to work.
 
 TODO
  * Add varnish restart
