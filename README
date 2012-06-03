@@ -1,0 +1,33 @@
+Server Management Commands for Drush
+
+This plugin is designed to be a cross platform tool for managing basic
+server tasks through drush.
+
+The plugin currently supports:
+
+ * Distro type detection
+ * Apache config file path resolution
+ * Restarting apache gracefully
+
+Requirements
+This plugin only works on Linux.  I have no interest in making it work under
+Windows.
+
+You must have the lsb_release command available on the server.  All commands 
+rely on it.
+
+Caveats
+The plugin assumes that standard distro packages are being used, or at least
+the normal paths and commands for the distro are being used. Stock source
+compiled binaries may not be compatible with this plugin.
+
+TODO
+ * Add varnish restart
+ * Add memcache restart
+ * Enable/disable virtual hosts
+
+Credits
+This plugin was developed by Dave Hall - dave technocrat.com.au
+
+Some development of this module was sponsored by 
+Technocrat - http://technocrat.com.au
