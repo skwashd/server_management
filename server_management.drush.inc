@@ -30,13 +30,13 @@ function server_management_drush_command() {
     'arguments'   => array(),
     'options'   => array(
       'vhost' => array(
-        'description' => dt('The name of the virtual host file to check'),
-        'example_value' => 'example.com.conf',
+        'description' => dt('The domain name of the virtual host file to lookup'),
+        'example_value' => 'example.com',
         'value' => 'required',
       ),
     ),
     'examples' => array(
-      'Standard example' => 'drush sm-apache-file --vhost=example.com.conf',
+      'Standard example' => 'drush sm-apache-file --vhost=example.com',
     ),
     'aliases' => array('apache-file'),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
@@ -74,26 +74,12 @@ function drush_server_management_sm_apache_file() {
     $host = drush_get_option('uri');
   }
 
-  if (!$host) {
-    drush_die(dt('No virtual host specified.'));
+  try {
+    $full_path = server_management_get_apache_file($host);
   }
-
-  $path_string = '';
-  switch(_server_management_get_distro_identifier()) {
-    case 'debian':
-      $path_string = '/etc/apache2/site-enabled/@vhost';
-      break;
-    case 'redhat':
-      $path_string = '/etc/httpd/conf.d/@vhost.conf';
-      break;
+  catch (Exception $e) {
+    drush_die((string) $e);
   }
-
-  if (!$path_string) {
-    drush_die(dt('Linux distro not supported.'));
-  }
-
-  $config_file = dt($path_string, array('@vhost' => $host));
-  $full_path = readlink_e($config_file);
 
   drush_print(dt('Apache file: @full_path', array('@full_path' => $full_path)));
   drush_print_pipe($full_path);
@@ -147,6 +133,58 @@ function drush_server_management_sm_linux_type() {
 }
 
 /**
+ * Wrapper for PHP's readlink() to make it function like GNU "readlink -e".
+ */
+function readlink_e($link) {
+  $target = realpath($link);
+  if (FALSE === $target) {
+    return $link;
+  }
+
+  if (is_link($target)) {
+    return readlink_e($target);
+  }
+  return $target;
+}
+
+/**
+ * Fetches the fully resolved path to an apache config file.
+ *
+ * @param $host string
+ *   The hostname to lookup.
+ *
+ * @return string
+ *   The fully qualified path to the apache config file.
+ *
+ * @throws Exception
+ */
+function server_management_get_apache_file($host) {
+
+  if (!$host) {
+    throw new Exception('No virtual host specified.');
+  }
+
+  $path_string = '';
+  switch(_server_management_get_distro_identifier()) {
+    case 'debian':
+      $path_string = '/etc/apache2/sites-enabled/@vhost';
+      break;
+    case 'redhat':
+      $path_string = '/etc/httpd/conf.d/@vhost.conf';
+      break;
+  }
+
+  if (!$path_string) {
+    throw new Exception('Linux distro not supported.');
+  }
+
+  $config_file = dt($path_string, array('@vhost' => $host));
+  $full_path = readlink_e($config_file);
+
+  return $full_path;
+}
+
+/**
  * Determine the Linux distro the command is running on.
  *
  * @param $return_raw bool
@@ -185,17 +223,4 @@ function _server_management_get_distro_identifier($return_raw = FALSE) {
   return 'Unknown';
 }
 
-/**
- * Wrapper for PHP's readlink() to make it function like GNU "readlink -e".
- */
-function readlink_e($link) {
-  $target = realpath($link);
-  if (FALSE === $target) {
-    return $link;
-  }
 
-  if (is_link($target)) {
-    return readlink_e($target);
-  }
-  return $target;
-}
