@@ -94,10 +94,12 @@ function drush_server_management_sm_apache_graceful() {
     case 'debian':
       $apachectl_cmd = '/usr/sbin/apache2ctl';
       $service_name = 'apache2';
+      $service_cmd = '/usr/sbin/service';
       break;
     case 'redhat':
       $apachectl_cmd = '/usr/sbin/apachectl';
       $service_name = 'httpd';
+      $service_cmd = '/sbin/service';
       break;
 
     default:
@@ -112,7 +114,7 @@ function drush_server_management_sm_apache_graceful() {
     drush_die(dt('Apache configuration is invalid.'));
   }
 
-  if (!drush_shell_exec('sudo /usr/sbin/service ' . $service_name . ' graceful')) {
+  if (!drush_shell_exec('sudo ' . $service_cmd . ' ' . $service_name . ' graceful')) {
     drush_die(dt('Apache failed to reload. Check state of the apache service.'));
   }
 
